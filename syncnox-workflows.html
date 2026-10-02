@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Syncnox Advanced workflows</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap');
+
+  body{margin:0;background:#fff}
+  #wf{
+    --gray-10:#f4f4f4; --gray-20:#e0e0e0; --gray-30:#c6c6c6; --gray-50:#8d8d8d; --gray-70:#525252; --ink:#161616;
+    --accent:#015c11; --bright:#00c80d; --g-050:#EAF3DA;
+    --muted:var(--gray-70); --faint:var(--gray-50);
+    --grad:linear-gradient(90deg,#015c11,#00c80d);
+    --scr:#FBFCF8; --scr-bar:#F2F4EC; --wire:#D2D6C8; --line:#E6E8E0;
+    --f:"Geist",-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+    --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --ease:cubic-bezier(.2,0,.38,.9); --ease-soft:cubic-bezier(.16,1,.3,1); --ease-out:cubic-bezier(.22,1,.36,1);
+    font-family:var(--f);color:var(--muted);line-height:1.5;-webkit-font-smoothing:antialiased;
+    font-feature-settings:"zero" 0,"ss01" 0;font-variant-numeric:lining-nums tabular-nums;
+    background:#fff;padding:clamp(64px,8vw,112px) 0;position:relative;
+  }
+  #wf *,#wf *::before,#wf *::after{box-sizing:border-box;border-radius:0}
+  #wf .wrap{max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,48px)}
+  #wf svg.i{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+  /* header */
+  #wf .sec-head{text-align:center;max-width:800px;margin:0 auto clamp(32px,4vw,48px)}
+  #wf .eyebrow{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);display:inline-flex;align-items:center;gap:10px;margin:0 0 18px}
+  #wf .eyebrow::before{content:"";width:22px;height:3px;background:var(--grad)}
+  #wf h2{font-weight:400;letter-spacing:-.025em;line-height:1.08;font-size:clamp(30px,3.9vw,46px);margin:0;
+    background:linear-gradient(100deg,#0A0A0A 0%,#013a0b 46%,#00c80d 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+  #wf h2 .hl{font-weight:600}
+  #wf .sec-head p{margin:18px auto 0;font-size:1.06rem;line-height:1.6;max-width:58ch}
+
+  /* four kinds of trigger */
+  #wf .tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));column-gap:clamp(12px,2vw,26px);margin-bottom:20px}
+  #wf .tab{position:relative;display:grid;grid-template-columns:36px minmax(0,1fr);gap:12px;align-items:center;padding:18px 0 4px;background:none;border:none;cursor:pointer;font-family:inherit;text-align:left;color:inherit}
+  #wf .tab .b2{position:absolute;left:0;right:0;top:0;height:3px;background:var(--gray-10);overflow:hidden}
+  #wf .tab .b2 i{display:block;height:100%;width:0;background:var(--accent)}
+  #wf .tab.on .b2 i{width:100%}
+  #wf .tab.on.run .b2 i{width:0;animation:wfFill var(--dw,7000ms) linear forwards}
+  #wf .tab.on.run.hold .b2 i{animation-play-state:paused}
+  @keyframes wfFill{to{width:100%}}
+  #wf .tab .pi{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:var(--gray-10);color:var(--muted);transition:background .3s,color .3s}
+  #wf .tab.on .pi{background:var(--accent);color:#fff}
+  #wf .tab b{display:block;font-size:1rem;font-weight:600;letter-spacing:-.01em;line-height:1.3;color:var(--muted);transition:color .3s}
+  #wf .tab.on b,#wf .tab:hover b{color:var(--ink)}
+  #wf .tab:focus-visible,#wf .ib:focus-visible,#wf .tk:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+  /* frame + screen */
+  #wf .frame{position:relative;background:linear-gradient(150deg,#000 0%,#013a0b 42%,#00c80d 100%);padding:clamp(10px,2.6vw,34px);overflow:hidden}
+  #wf .frame::before{content:"";position:absolute;inset:0;background:radial-gradient(560px circle at var(--mx,24%) var(--my,14%),rgba(90,255,120,.42),rgba(0,200,13,.15) 46%,transparent 74%);pointer-events:none}
+  #wf .scr{position:relative;z-index:1;background:var(--scr);box-shadow:0 30px 60px rgba(8,16,4,.45)}
+  #wf .bar{display:flex;align-items:center;gap:10px;height:46px;padding:0 6px 0 16px;background:var(--scr-bar);font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--ink)}
+  #wf .bar .sq{width:8px;height:8px;background:var(--accent);flex:none}
+  #wf .bar .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #wf .bar .t em{font-style:normal;color:var(--faint);font-weight:500}
+  #wf .bar .w::after{content:"· ";color:var(--faint);font-weight:500}
+  #wf .ticks{margin-left:auto;display:flex;gap:4px;padding-right:6px}
+  #wf .tk{width:22px;height:30px;padding:0;border:none;background:none;cursor:pointer;display:flex;align-items:center}
+  #wf .tk i{display:block;width:100%;height:3px;background:var(--gray-30);transition:background .3s}
+  #wf .tk.on i{background:var(--accent)}
+  #wf .ib{width:30px;height:30px;flex:none;border:none;background:none;color:var(--faint);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s,color .2s}
+  #wf .ib:hover{background:#fff;color:var(--ink)}
+  #wf .ib svg{width:15px;height:15px}
+
+  /* the canvas: a dotted board the blocks sit on */
+  #wf .cv{position:relative;min-height:200px;background-color:#F6F8F1;background-image:radial-gradient(rgba(22,22,22,.2) 1px,transparent 1.2px);background-size:16px 16px;background-position:8px 8px;overflow:hidden;transition:box-shadow .2s}
+  #wf .cv.free{height:500px}
+  #wf .cv.over{box-shadow:inset 0 0 0 2px var(--accent)}
+  #wf .wires{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+  /* connectors are dotted; once an event has passed, the dots turn green and move along the line */
+  #wf .wires path{fill:none;stroke-width:2.5;stroke-dasharray:2.5 6}
+  #wf .wires .wb{stroke:#A9AE9C}
+  #wf .wires .wl{stroke:var(--accent);stroke-width:3;opacity:0;transition:opacity .25s}
+  #wf .wires .wl.on{opacity:1}
+  #wf .wires .wl.flow{animation:wfMarch .7s linear infinite}
+  @keyframes wfMarch{to{stroke-dashoffset:-17}}
+  #wf .wires rect{fill:var(--accent);stroke:#fff;stroke-width:2;opacity:0}
+  /* a block */
+  #wf .nd{display:grid;grid-template-columns:40px minmax(0,1fr);gap:13px;align-items:center;height:96px;padding:0 16px 0 14px;background:#fff;min-width:0;
+    box-shadow:0 1px 0 rgba(22,22,22,.05),0 14px 30px -18px rgba(22,22,22,.28);opacity:0;transform:translateY(10px);transition:opacity .4s var(--ease),transform .55s var(--ease-out),box-shadow .25s}
+  #wf .nd.in{opacity:1;transform:none}
+  #wf .cv.free .nd{position:absolute;touch-action:none;cursor:grab;-webkit-user-select:none;user-select:none}
+  #wf .cv.free .nd.snap{transition:left .18s var(--ease-out),top .18s var(--ease-out),box-shadow .25s}
+  #wf .nd.drag{cursor:grabbing;z-index:5;transition:none!important;box-shadow:0 0 0 2px var(--ink),0 26px 44px -18px rgba(22,22,22,.45)}
+  #wf .nd.run{box-shadow:0 0 0 2px var(--kc),0 18px 34px -18px rgba(22,22,22,.34)}
+  #wf .cv.free .nd:hover{box-shadow:0 0 0 1px var(--gray-30),0 18px 34px -18px rgba(22,22,22,.34)}
+  #wf .cv.free .nd.run,#wf .cv.free .nd.run:hover{box-shadow:0 0 0 2px var(--kc),0 18px 34px -18px rgba(22,22,22,.34)}
+  #wf .cv.free .nd.drag,#wf .cv.free .nd.drag:hover{box-shadow:0 0 0 2px var(--ink),0 26px 44px -18px rgba(22,22,22,.45)}
+  #wf .ni{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:var(--kc);color:#fff}
+  #wf .ni svg{width:19px;height:19px}
+  #wf .nt{display:block;font-size:16px;font-weight:600;letter-spacing:-.015em;line-height:1.25;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #wf .ns{display:block;margin-top:3px;font-size:14px;line-height:1.38;color:var(--muted);transition:opacity .22s var(--ease),color .3s;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  #wf .ns.sw{opacity:0}
+  #wf .nd.done .ns{color:var(--ink)}
+  #wf .tg{position:absolute;left:0;top:-21px;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.16em;color:var(--ink);white-space:nowrap;pointer-events:none}
+  /* connection points */
+  #wf .pt{position:absolute;top:50%;width:9px;height:9px;margin-top:-4.5px;background:#fff;box-shadow:inset 0 0 0 2px var(--ink)}
+  #wf .pt.l{left:-5px} #wf .pt.r{right:-5px}
+  #wf .ck{position:absolute;right:0;top:0;width:22px;height:22px;display:flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;opacity:0;transform:scale(.5);transition:opacity .25s,transform .45s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
+  #wf .ck svg{width:12px;height:12px;stroke-width:3}
+  #wf .nd.done .ck{opacity:1;transform:none}
+  #wf .rm{position:absolute;right:0;bottom:0;width:22px;height:22px;padding:0;border:none;background:var(--gray-10);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s,background .2s,color .2s}
+  #wf .rm svg{width:11px;height:11px;stroke-width:2.4}
+  #wf .nd:hover .rm,#wf .rm:focus-visible{opacity:1}
+  #wf .rm:hover{background:var(--ink);color:#fff}
+  #wf .cv.one .rm{display:none}
+  #wf .hint{position:absolute;left:14px;bottom:12px;display:inline-flex;align-items:center;gap:8px;padding:6px 10px;background:#fff;font-size:12.5px;font-weight:500;color:var(--ink);pointer-events:none;box-shadow:0 8px 18px -12px rgba(22,22,22,.4);transition:opacity .4s}
+  #wf .hint svg{width:14px;height:14px}
+  #wf .hint.off{opacity:0}
+
+  /* the dock: blocks to add, and the controls */
+  #wf .dock{display:flex;flex-wrap:wrap;align-items:center;gap:8px 8px;padding:11px 14px;background:#fff;box-shadow:0 -1px 0 var(--line)}
+  #wf .dk{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.12em;color:var(--faint);margin-right:6px}
+  #wf .chip{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 12px 0 8px;border:none;background:var(--gray-10);font-family:inherit;font-size:14px;font-weight:500;color:var(--ink);cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none;transition:background .2s,opacity .2s}
+  #wf .chip .gr{color:var(--gray-50);display:flex}
+  #wf .chip .gr svg{width:14px;height:14px}
+  #wf .chip i{width:9px;height:9px;background:var(--kc)}
+  #wf .chip:hover{background:var(--gray-20)}
+  #wf .dock.full .chip{opacity:.4;cursor:not-allowed}
+  #wf .sp{flex:1}
+  #wf .rs{height:36px;padding:0 12px;border:none;background:none;font-family:inherit;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer}
+  #wf .rs:hover{color:var(--ink)}
+  #wf .go{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 16px;border:none;background:var(--ink);color:#fff;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s}
+  #wf .go svg{width:13px;height:13px;stroke-width:2.2}
+  #wf .go:hover{background:var(--accent)}
+  #wf .chip:focus-visible,#wf .go:focus-visible,#wf .rs:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  /* the block that follows the pointer while it is dragged in from the dock */
+  .wf-ghost{position:fixed;left:0;top:0;z-index:9999;display:inline-flex;align-items:center;gap:10px;height:44px;padding:0 14px 0 6px;background:#fff;font:600 15px "Geist",-apple-system,"Segoe UI",Arial,sans-serif;color:#161616;box-shadow:0 0 0 2px #161616,0 22px 40px -16px rgba(22,22,22,.5);pointer-events:none;transform:translate(-50%,-50%)}
+  .wf-ghost i{width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:#fff}
+  .wf-ghost svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+  /* what the blocks are made of */
+  #wf .kit{margin-top:clamp(26px,3.6vw,40px);border-top:1px solid var(--ink)}
+  #wf .kr{display:grid;grid-template-columns:150px minmax(0,1fr);gap:16px;align-items:baseline;padding:15px 0;border-bottom:1px solid var(--line)}
+  #wf .kr b{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--ink)}
+  #wf .kr ul{display:flex;flex-wrap:wrap;gap:6px 26px;margin:0;padding:0;list-style:none}
+  #wf .kr li{display:inline-flex;align-items:center;gap:9px;font-size:15.5px;font-weight:500;color:var(--ink)}
+  #wf .kr li svg{width:16px;height:16px;color:var(--muted)}
+  #wf .fine{margin:16px 0 0;text-align:center;font-size:12.5px;color:var(--faint)}
+
+  #wf .reveal{opacity:0;transform:translateY(22px);transition:opacity .8s var(--ease-soft),transform .8s var(--ease-soft)}
+  #wf .reveal.in{opacity:1;transform:none}
+  #wf .reveal.d1{transition-delay:.1s}
+
+  @media(max-width:940px){
+    #wf .tabs{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:6px}
+    #wf .kr{grid-template-columns:minmax(0,1fr);gap:8px}
+  }
+  /* stacked layout (phones, tablets): blocks in a column, the dotted wire in a gutter on the left */
+  #wf .cv.stack{padding:20px 16px 24px 44px}
+  #wf .cv.stack .nodes{display:flex;flex-direction:column;gap:10px}
+  #wf .cv.stack .nd{position:relative}
+  #wf .cv.stack .nd.tagged{margin-top:26px}
+  #wf .cv.stack .nd.tagged:first-child{margin-top:20px}
+  #wf .cv.stack .pt,#wf .cv.stack .hint{display:none}
+  #wf .cv.stack .rm{opacity:1}
+  @media(max-width:640px){
+    #wf .bar{font-size:10.5px;gap:4px;padding-left:12px}
+    #wf .bar .w{display:none}
+    #wf .bar .t em{color:var(--ink);font-weight:600}
+    #wf .tk{width:14px}
+    #wf .ticks{gap:3px;padding-right:2px}
+    #wf .cv.stack{padding:18px 12px 20px 38px}
+    #wf .nd{grid-template-columns:36px minmax(0,1fr);gap:12px;padding:0 14px 0 12px}
+    #wf .ni{width:36px;height:36px}
+    #wf .nt{font-size:15.5px}
+    #wf .ns{font-size:13.5px}
+    #wf .kr li{font-size:15px}
+    #wf .dock{padding:10px 12px}
+    #wf .dk{flex-basis:100%}
+    #wf .chip{height:34px;font-size:13.5px;padding:0 10px 0 8px}
+    #wf .chip .gr{display:none}
+    #wf .sp{flex-basis:100%;height:0}
+    #wf .go{flex:1;justify-content:center}
+  }
+  @media(max-width:560px){
+    #wf .tabs{grid-template-columns:minmax(0,1fr);row-gap:2px;margin-bottom:16px}
+    #wf .tab{padding:10px 0 10px 14px}
+    #wf .tab .b2{right:auto;bottom:0;width:3px;height:auto}
+    #wf .tab .b2 i{width:100%!important;height:0}
+    #wf .tab.on .b2 i{height:100%}
+    #wf .tab.on.run .b2 i{height:0;animation:wfFillV var(--dw,7000ms) linear forwards}
+    @keyframes wfFillV{to{height:100%}}
+  }
+  @media(prefers-reduced-motion:reduce){
+    #wf *{animation:none!important;transition:none!important}
+    #wf .reveal{opacity:1;transform:none}
+  }
+</style>
+</head>
+<body>
+
+<section id="wf" aria-labelledby="wfTitle">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Advanced workflows</span>
+      <h2 id="wfTitle">Draw the rule once.<br><span class="hl">Syncnox runs it every time.</span></h2>
+      <p>Build workflows on a visual canvas. Pick the event that starts it, add a condition, and connect the actions that should follow.</p>
+    </div>
+
+    <div class="reveal d1">
+      <div class="tabs" id="wfTabs" role="tablist" aria-label="Kinds of trigger"></div>
+      <div class="frame" id="wfFrame">
+        <div class="scr">
+          <div class="bar"><span class="sq"></span><span class="t"><span class="w">Workflow </span><em id="wfName"></em></span>
+            <span class="ticks" id="wfTicks" role="group" aria-label="Examples for this trigger"></span>
+            <button type="button" class="ib" id="wfPrev" aria-label="Previous example"></button><button type="button" class="ib" id="wfNext" aria-label="Next example"></button>
+            <button type="button" class="ib" id="wfPlay" aria-label="Pause"></button></div>
+          <div class="cv" id="wfCv">
+            <svg class="wires" id="wfW" aria-hidden="true"></svg>
+            <div class="nodes" id="wfN"></div>
+            <span class="hint" id="wfHint"></span>
+          </div>
+          <div class="dock" id="wfDock"><span class="dk">ADD A BLOCK</span><span id="wfPal" style="display:contents"></span><span class="sp"></span>
+            <button type="button" class="rs" id="wfReset">Reset</button><button type="button" class="go" id="wfRun"></button></div>
+        </div>
+      </div>
+      <p class="fine">Illustrative examples. Names, numbers and thresholds are placeholders.</p>
+      <div class="kit" id="wfKit"></div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  var root=document.getElementById('wf'); if(!root) return;
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var I={"bell-ring": "<path d=\"M10.268 21a2 2 0 0 0 3.464 0\"/><path d=\"M22 8c0-2.3-.8-4.3-2-6\"/><path d=\"M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326\"/><path d=\"M4 2C2.8 3.7 2 5.7 2 8\"/>", "check": "<path d=\"M20 6 9 17l-5-5\"/>", "chevron-left": "<path d=\"m15 18-6-6 6-6\"/>", "chevron-right": "<path d=\"m9 18 6-6-6-6\"/>", "clipboard-list": "<rect width=\"8\" height=\"4\" x=\"8\" y=\"2\" rx=\"1\" ry=\"1\"/><path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\"/><path d=\"M12 11h4\"/><path d=\"M12 16h4\"/><path d=\"M8 11h.01\"/><path d=\"M8 16h.01\"/>", "clock": "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 6v6l4 2\"/>", "grip-vertical": "<circle cx=\"9\" cy=\"12\" r=\"1\"/><circle cx=\"9\" cy=\"5\" r=\"1\"/><circle cx=\"9\" cy=\"19\" r=\"1\"/><circle cx=\"15\" cy=\"12\" r=\"1\"/><circle cx=\"15\" cy=\"5\" r=\"1\"/><circle cx=\"15\" cy=\"19\" r=\"1\"/>", "mail": "<path d=\"m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7\"/><rect x=\"2\" y=\"4\" width=\"20\" height=\"16\" rx=\"2\"/>", "message-square-text": "<path d=\"M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z\"/><path d=\"M7 11h10\"/><path d=\"M7 15h6\"/><path d=\"M7 7h8\"/>", "messages-square": "<path d=\"M16 10a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 14.286V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z\"/><path d=\"M20 9a2 2 0 0 1 2 2v10.286a.71.71 0 0 1-1.212.502l-2.202-2.202A2 2 0 0 0 17.172 19H10a2 2 0 0 1-2-2v-1\"/>", "move": "<path d=\"M12 2v20\"/><path d=\"m15 19-3 3-3-3\"/><path d=\"m19 9 3 3-3 3\"/><path d=\"M2 12h20\"/><path d=\"m5 9-3 3 3 3\"/><path d=\"m9 5 3-3 3 3\"/>", "pause": "<rect x=\"14\" y=\"3\" width=\"5\" height=\"18\" rx=\"1\"/><rect x=\"5\" y=\"3\" width=\"5\" height=\"18\" rx=\"1\"/>", "play": "<path d=\"M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z\"/>", "route": "<circle cx=\"6\" cy=\"19\" r=\"3\"/><path d=\"M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15\"/><circle cx=\"18\" cy=\"5\" r=\"3\"/>", "smartphone": "<rect width=\"14\" height=\"20\" x=\"5\" y=\"2\" rx=\"2\" ry=\"2\"/><path d=\"M12 18h.01\"/>", "split": "<path d=\"M16 3h5v5\"/><path d=\"M8 3H3v5\"/><path d=\"M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3\"/><path d=\"m15 9 6-6\"/>", "square-pen": "<path d=\"M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7\"/><path d=\"M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z\"/>", "truck": "<path d=\"M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2\"/><path d=\"M15 18H9\"/><path d=\"M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14\"/><circle cx=\"17\" cy=\"18\" r=\"2\"/><circle cx=\"7\" cy=\"18\" r=\"2\"/>", "user-round": "<circle cx=\"12\" cy=\"8\" r=\"5\"/><path d=\"M20 21a8 8 0 0 0-16 0\"/>", "webhook": "<path d=\"M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c.01-.7.2-1.4.57-2\"/><path d=\"m6 17 3.13-5.78c.53-.97.1-2.18-.5-3.1a4 4 0 1 1 6.89-4.06\"/><path d=\"m12 6 3.13 5.73C15.66 12.7 16.9 13 18 13a4 4 0 0 1 0 8\"/>", "x": "<path d=\"M18 6 6 18\"/><path d=\"m6 6 12 12\"/>"};   /* Lucide (ISC licence) */
+  function ic(n){return '<svg class="i" viewBox="0 0 24 24">'+I[n]+'</svg>';}
+  function $(id){return document.getElementById(id);}
+
+  /* ================= content =================
+     block kinds, trigger families and channels are the product's; the sixteen examples are illustrations built from features on the Syncnox site.
+     an example: n = name · trig [title, detail, what fired] · cond [title, detail] · tests[0][1] = why it is true · yes = three actions [kind, title, detail, short result, what it did] */
+  var KCOL={trig:'#015c11',cond:'#161616',notify:'#0f62fe',plan:'#8a3ffc',record:'#525252',system:'#007d79'};
+  var KICON={cond:'split',notify:'bell-ring',plan:'route',record:'square-pen',system:'webhook'};
+  var FAM=[['Job events','clipboard-list'],['Vehicle and asset events','truck'],['Driver events','user-round'],['Time-based','clock']];
+  /* the four blocks a visitor can add themselves: [kind, dock label, title, detail, what it did] */
+  var ADD=[['notify','Notify','Notify someone','Email, SMS, push or WhatsApp','Notification sent'],['plan','Change the plan','Change the plan','Reassign, re-plan or re-prioritise','Plan updated'],
+           ['record','Record','Update a record','A job, a task, a status or a note','Record updated'],['system','Other system','Call another system','Webhook or API call','Delivered, 200 OK']];
+  var W=[
+    {f:0,n:'A job runs late',trig:['Job is running late','ETA slips past its window','JOB-4471 is running late'],cond:['Late by over 10 min?','And it has a time window'],
+     tests:[['25 min late','25 min is over 10, so yes'],['4 min late','4 min is within 10, so no']],
+     yes:[['notify','Tell the customer','SMS and WhatsApp','Sent','“Your technician now arrives 10:50 to 11:05.”'],['plan','Re-plan the route','Keep every other window','2 stops re-ordered','TECH-22: 2 stops re-ordered, windows held'],['record','Log it on the job','Adds a note','Note added','Note added to JOB-4471']],
+     no:['record','Log it only','Inside tolerance','Logged','Delay logged, nobody disturbed']},
+    {f:0,n:'A delivery attempt fails',trig:['Delivery attempt failed','Customer not home','Stop 21: customer not home'],cond:['First attempt today?','No earlier failed attempt'],
+     tests:[['First attempt','First attempt today, so yes'],['Second attempt','Already tried once, so no']],
+     yes:[['plan','Slot a re-attempt','Same route, later today','Re-attempt at 16:30','VAN-07: re-attempt slotted at 16:30, no detour'],['notify','Tell the customer','SMS with the new time','Sent','“We missed you. We will try again at 16:30.”'],['record','Log the failed attempt','On the job record','Logged','Failed attempt logged with time and place']],
+     no:['notify','Email the account owner','Two attempts failed','Email sent','Account owner emailed: two failed attempts']},
+    {f:0,n:'An urgent job arrives',trig:['Urgent job added','Priority is urgent','Emergency repair added'],cond:['Qualified tech nearby?','Within 20 min, right skills'],
+     tests:[['Tech 12 min away','TECH-09 is 12 min away, so yes'],['Nobody nearby','Nearest is 45 min away, so no']],
+     yes:[['plan','Assign the nearest tech','Skills and tools matched','TECH-09 assigned','TECH-09 assigned, afternoon windows held'],['notify','Push to the technician','In the driver app','Pushed','Push sent: new urgent job is your next stop'],['notify','Tell the customer','SMS with a live ETA link','Sent','“Help is on the way. Arriving in 12 min.”']],
+     no:['notify','Alert the dispatcher','Needs a decision','Alerted','Dispatcher alerted: no qualified tech nearby']},
+    {f:0,n:'A job is completed',trig:['Job completed','Departure logged','JOB-4471 completed at 11:26'],cond:['Proof of delivery?','Arrival and exit recorded'],
+     tests:[['Proof recorded','Arrival and exit recorded, so yes'],['Proof missing','No exit recorded, so no']],
+     yes:[['notify','Email the customer','Proof of delivery attached','Email sent','Customer emailed the proof of delivery'],['system','Update your order system','Webhook: order delivered','Delivered','POST order.delivered returned 200 OK'],['record','Close the job','Status set to done','Closed','JOB-4471 closed']],
+     no:['notify','Remind the driver','Push in the app','Pushed','Driver reminded to confirm departure']},
+
+    {f:1,n:'A critical fault code',trig:['Fault code detected','Vehicle or powered asset','TRK-14: engine over-temperature'],cond:['Is it critical?','Severity is critical'],
+     tests:[['Over-temperature','Severity is critical, so yes'],['Service reminder','Severity is minor, so no']],
+     yes:[['plan','Pull the vehicle','Move its open stops','6 stops moved','TRK-14 pulled, 6 stops moved to 2 vehicles'],['record','Create a maintenance job','For the workshop','JOB-5120 created','Maintenance job JOB-5120 created'],['system','Tell your other system','Webhook to maintenance','Delivered','POST vehicle.fault returned 200 OK']],
+     no:['notify','Email the supervisor','Add to the next service','Email sent','Supervisor emailed: add to the next service']},
+    {f:1,n:'After-hours movement',trig:['Asset leaves a geofence','Yard, depot or job site','Trailer TR-31 left Yard B'],cond:['Outside working hours?','Between 19:00 and 06:00'],
+     tests:[['02:14 at night','02:14 is after hours, so yes'],['10:30 in the day','10:30 is working time, so no']],
+     yes:[['notify','Alert the managers','Push and SMS','2 managers alerted','2 managers alerted by push and SMS'],['record','Flag the asset','Status: check movement','Flagged','TR-31 flagged, frequent location updates on'],['system','Tell your security desk','Webhook','Delivered','POST asset.moved returned 200 OK']],
+     no:['record','Log the movement','Normal working hours','Logged','Movement logged']},
+    {f:1,n:'A vehicle idles too long',trig:['Vehicle is idling','Engine on, not moving','VAN-03 idling at stop 9'],cond:['Over 10 minutes?','Your idle threshold'],
+     tests:[['22 min idle','22 min is over 10, so yes'],['6 min idle','6 min is under 10, so no']],
+     yes:[['notify','Nudge the driver','Push in the app','Pushed','Push sent: engine idling for 22 min'],['record','Add to the idle report','Per vehicle and stop','Recorded','22 idle minutes recorded for VAN-03'],['notify','Tell the supervisor','Daily summary email','Queued','Added to today’s idle summary email']],
+     no:['end','Do nothing','Under the threshold','Skipped','Under the threshold, nothing sent']},
+    {f:1,n:'Service is coming due',trig:['Service is due soon','By hours, mileage or time','VAN-07: service due in 120 km'],cond:['Due before next week?','Inside 500 km or 5 days'],
+     tests:[['Due in 120 km','120 km is inside 500, so yes'],['Due in 2,400 km','2,400 km is outside 500, so no']],
+     yes:[['record','Book the service','Creates a maintenance job','Booked 07:00','Service booked for tomorrow at 07:00'],['plan','Keep it off the plan','For the service slot','Blocked 07:00 to 09:00','VAN-07 blocked 07:00 to 09:00 tomorrow'],['notify','Email the workshop','Service details','Email sent','Workshop emailed the service details']],
+     no:['record','Add to the service list','Review next week','Added','Added to next week’s service list']},
+
+    {f:2,n:'A driver calls out',trig:['Driver calls out','Before or during a shift','J. Lee called out'],cond:['Any open jobs?','Jobs still assigned to them'],
+     tests:[['9 open jobs','9 jobs are still assigned, so yes'],['No open jobs','Nothing is assigned, so no']],
+     yes:[['plan','Rebalance the work','By capacity and skills','9 jobs moved','9 jobs moved to 3 drivers with capacity'],['notify','Tell the customers','SMS with the updated ETA','9 customers told','“Your visit is still today. New arrival: 14:10.”'],['notify','Post to dispatch','WhatsApp or your chat tool','Posted','Posted to dispatch: J. Lee out, work rebalanced']],
+     no:['record','Update the roster','Mark the driver as absent','Roster updated','Roster updated: J. Lee absent']},
+    {f:2,n:'A drive limit is close',trig:['Drive limit is close','Per driver, per day','S. Patel: 9h 20m driven'],cond:['Under 45 min left?','Before the daily limit'],
+     tests:[['40 min left','40 min is under 45, so yes'],['3 hours left','3 hours is plenty, so no']],
+     yes:[['plan','Move the remaining jobs','To drivers with hours left','2 jobs moved','2 jobs moved to M. Reyes'],['notify','Tell the driver','Push in the app','Pushed','Push sent: head back after this stop'],['record','Log it for compliance','Hours and reason','Logged','Drive hours logged for compliance']],
+     no:['end','Do nothing','Enough hours left','Skipped','Enough hours left, nothing sent']},
+    {f:2,n:'An inspection fails',trig:['Inspection failed','Digital vehicle inspection','TRK-14: inspection failed'],cond:['Safety defect?','Brakes, tyres or lights'],
+     tests:[['Brake defect','Brakes are safety-critical, so yes'],['Cracked mirror','Not safety-critical, so no']],
+     yes:[['plan','Pull the vehicle','Move its stops today','8 stops moved','TRK-14 pulled, 8 stops moved'],['record','Create a repair job','For the workshop','JOB-5133 created','Repair job JOB-5133 created'],['notify','Alert the supervisor','Push and email','Alerted','Supervisor alerted: brake defect on TRK-14']],
+     no:['record','Create a repair task','Fix at the next service','Task created','Repair task added for the next service']},
+    {f:2,n:'A shift starts',trig:['Driver starts a shift','Shift start','A. Khan started a shift'],cond:['Certification expiring?','Inside the next 30 days'],
+     tests:[['Expires in 12 days','12 days is inside 30, so yes'],['Valid for a year','Nothing is expiring, so no']],
+     yes:[['notify','Remind the driver','Push in the app','Pushed','Push sent: certification expires in 12 days'],['record','Create a renewal task','Due before it expires','Task created','Renewal task created, due in 10 days'],['notify','Email the supervisor','Weekly digest','Queued','Added to the supervisor’s weekly digest']],
+     no:['end','Do nothing','Everything is valid','Skipped','All certifications valid']},
+
+    {f:3,n:'Morning inspection check',trig:['Every day at 05:30','Runs on a schedule','Fired at 05:30'],cond:['Inspection overdue?','On a vehicle in today’s plan'],
+     tests:[['2 overdue','2 inspections are missing, so yes'],['All inspected','Nothing is missing, so no']],
+     yes:[['notify','Remind the driver','Push in the app','2 drivers reminded','Push sent to 2 drivers: inspect before leaving'],['record','Create a task','Added to the driver’s day','2 tasks created','2 inspection tasks created'],['notify','Email the supervisor','What is overdue','Email sent','Supervisor emailed: 2 inspections overdue']],
+     no:['notify','Send the all-clear','Email to the supervisor','Email sent','All-clear emailed: every vehicle inspected']},
+    {f:3,n:'End-of-day open jobs',trig:['Every day at 18:00','Runs on a schedule','Fired at 18:00'],cond:['Any jobs still open?','Not completed today'],
+     tests:[['4 jobs open','4 jobs are not done, so yes'],['All jobs done','Nothing is open, so no']],
+     yes:[['plan','Move them to tomorrow','Keep their priority','4 jobs moved','4 open jobs moved to tomorrow’s plan'],['notify','Tell the customers','SMS with the new day','4 customers told','“Sorry we missed you today. New visit: tomorrow.”'],['notify','Email a summary','To the dispatcher','Email sent','Summary emailed to the dispatcher']],
+     no:['notify','Send the all-clear','Email, end of day','Email sent','All-clear emailed: every job done']},
+    {f:3,n:'Weekly utilization review',trig:['Every Friday at 16:00','Runs on a schedule','Fired on Friday at 16:00'],cond:['Any asset under 20%?','Utilization this month'],
+     tests:[['GN-02 at 9%','9% is under 20, so yes'],['All above 20%','Nothing is under 20, so no']],
+     yes:[['notify','Email finance','Utilization report','Email sent','Utilization report emailed to finance'],['record','Create a review task','Redeploy or return it','Task created','Task: redeploy GN-02 or end the rental'],['notify','Post to the ops channel','Your chat tool','Posted','Posted: GN-02 has been idle for 12 days']],
+     no:['notify','Email the report','No action needed','Email sent','Weekly report emailed, nothing flagged']},
+    {f:3,n:'Monthly fuel report',trig:['First day of the month','Runs on a schedule','Fired on the 1st at 06:00'],cond:['Off-road fuel recorded?','In the last month'],
+     tests:[['Fuel recorded','Off-road hours were recorded, so yes'],['Nothing recorded','No off-road use, so no']],
+     yes:[['record','Build the fuel report','Off-road totals','Report ready','Off-road fuel report built for the month'],['notify','Email finance','For the tax claim','Email sent','Report emailed to finance'],['system','Send to accounting','Webhook','Delivered','POST report.ready returned 200 OK']],
+     no:['end','Skip this month','Nothing to claim','Skipped','No off-road fuel, report skipped']}
+  ];
+  var KIT=[
+    ['TRIGGERS',[['clipboard-list','Job events'],['truck','Vehicle and asset events'],['user-round','Driver events'],['clock','Time-based']]],
+    ['ACTIONS',[['bell-ring','Notify people'],['route','Change the plan'],['square-pen','Create or update records'],['webhook','Call other systems']]],
+    ['CHANNELS',[['mail','Email'],['message-square-text','SMS'],['smartphone','Push in the app'],['messages-square','WhatsApp and chat tools']]]
+  ];
+  var DW=7400, NH=96, MAXA=4, SVGNS='http://www.w3.org/2000/svg';
+
+  /* ================= static parts ================= */
+  $('wfKit').innerHTML=KIT.map(function(g){ return '<div class="kr"><b>'+g[0]+'</b><ul>'+g[1].map(function(x){ return '<li>'+ic(x[0])+x[1]+'</li>'; }).join('')+'</ul></div>'; }).join('');
+  $('wfPrev').innerHTML=ic('chevron-left'); $('wfNext').innerHTML=ic('chevron-right'); $('wfRun').innerHTML=ic('play')+'Run test';
+  $('wfPal').innerHTML=ADD.map(function(a,k){ return '<button type="button" class="chip" data-k="'+k+'" style="--kc:'+KCOL[a[0]]+'" aria-label="Add block: '+a[1]+'"><span class="gr">'+ic('grip-vertical')+'</span><i></i>'+a[1]+'</button>'; }).join('');
+  var first=FAM.map(function(_,f){ for(var k=0;k<W.length;k++) if(W[k].f===f) return k; });
+  var tabs=FAM.map(function(f,i){ var b=document.createElement('button'); b.type='button'; b.className='tab'; b.setAttribute('role','tab');
+    b.innerHTML='<span class="b2"><i></i></span><span class="pi">'+ic(f[1])+'</span><b>'+f[0]+'</b>';
+    b.addEventListener('click',function(){ userStep(first[i]); });
+    b.addEventListener('keydown',function(e){ var d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:0; if(d){ var n=(i+d+4)%4; userStep(first[n]); tabs[n].focus(); } });
+    $('wfTabs').appendChild(b); return b; });
+  $('wfTicks').innerHTML=[0,1,2,3].map(function(k){ return '<button type="button" class="tk" aria-label="Example '+(k+1)+'"><i></i></button>'; }).join('');
+  var ticks=[].slice.call($('wfTicks').children);
+  ticks.forEach(function(t,k){ t.addEventListener('click',function(){ if(cur>-1) userStep(first[W[cur].f]+k); }); });
+  $('wfPrev').addEventListener('click',function(){ userStep((cur-1+W.length)%W.length); }); $('wfNext').addEventListener('click',function(){ userStep((cur+1)%W.length); });
+
+  /* ================= the graph: blocks and the dotted connectors between them ================= */
+  var cv=$('wfCv'), box=$('wfN'), svg=$('wfW'), T=null, C=null, A=[], E=[], free=false, moved=false, tm=[], cur=-1;
+  function later(fn,ms){ tm.push(setTimeout(fn,reduce?0:ms)); }
+  function mk(role,kind,title,sub,doneText,icn,tag){
+    var el=document.createElement('div'), n={el:el,role:role,kind:kind,sub:sub,doneText:doneText,x:0,y:0,w:0}; el.className='nd'+(tag?' tagged':''); el.style.setProperty('--kc',KCOL[kind]);
+    el.innerHTML=(tag?'<span class="tg">'+tag+'</span>':'')+'<span class="ni">'+ic(icn||KICON[kind])+'</span><div style="min-width:0"><span class="nt"></span><span class="ns"></span></div>'
+      +(role!=='t'?'<i class="pt l"></i>':'')+(role!=='a'?'<i class="pt r"></i>':'')+'<span class="ck">'+ic('check')+'</span>'+(role==='a'?'<button type="button" class="rm" aria-label="Remove this block">'+ic('x')+'</button>':'');
+    el.querySelector('.nt').textContent=title; el.querySelector('.ns').textContent=sub;
+    if(role==='a') el.querySelector('.rm').addEventListener('click',function(e){ e.stopPropagation(); touch(); removeAction(n); });
+    dragNode(n); return n; }
+  function edge(a,b){ var e={a:a,b:b,wb:document.createElementNS(SVGNS,'path'),wl:document.createElementNS(SVGNS,'path'),pz:document.createElementNS(SVGNS,'rect')};
+    e.wb.setAttribute('class','wb'); e.wl.setAttribute('class','wl'); e.pz.setAttribute('width',7); e.pz.setAttribute('height',7); svg.appendChild(e.wb); svg.appendChild(e.wl); svg.appendChild(e.pz); E.push(e); return e; }
+  function nodes(){ return [T,C].concat(A); }
+  function put(n,snap){ if(!free) return; n.el.classList.toggle('snap',!!snap); n.el.style.left=n.x+'px'; n.el.style.top=n.y+'px'; n.el.style.width=n.w+'px'; }
+  /* tidy positions: trigger and condition in the middle, actions fanned out on the right */
+  function auto(){ if(!free) return; var CW=cv.clientWidth, CH=cv.clientHeight, gap=Math.max(40,CW*.06), w=Math.floor(Math.min(280,(CW-60-2*gap)/3)), gap2=(CW-60-3*w)/2, top=30, usable=CH-top-18;
+    var g=A.length>3?10:14, tot=A.length*NH+(A.length-1)*g, y0=top+Math.max(0,(usable-tot)/2), mid=Math.round(y0+tot/2-NH/2);
+    T.x=30; T.y=mid; T.w=w; C.x=Math.round(30+w+gap2); C.y=mid; C.w=w; A.forEach(function(n,k){ n.x=Math.round(30+2*(w+gap2)); n.y=Math.round(y0+k*(NH+g)); n.w=w; });
+    nodes().forEach(function(n){ put(n); }); }
+  function mode(){ var f=cv.clientWidth>=760&&window.matchMedia('(pointer:fine)').matches; if(f!==free||!cv.classList.contains('free')&&!cv.classList.contains('stack')){ free=f; cv.classList.toggle('free',f); cv.classList.toggle('stack',!f);
+      nodes().forEach(function(n){ if(!n) return; n.el.classList.remove('snap'); if(!f){ n.el.style.left=n.el.style.top=n.el.style.width=''; } }); if(f&&T) auto(); }
+    else if(f&&T){ if(!moved) auto(); else { var CW=cv.clientWidth, CH=cv.clientHeight; nodes().forEach(function(n){ n.x=Math.max(0,Math.min(n.x,CW-n.w)); n.y=Math.max(22,Math.min(n.y,CH-NH)); put(n); }); } }
+    $('wfHint').innerHTML=ic('move')+'Drag any block. Drop a new one onto the canvas.'; draw(); }
+  function draw(){ if(!T) return; var R=cv.getBoundingClientRect(); svg.setAttribute('width',R.width); svg.setAttribute('height',R.height);
+    E.forEach(function(e){ var a=e.a.el.getBoundingClientRect(), b=e.b.el.getBoundingClientRect(), d, y1=a.top+a.height/2-R.top, y2=b.top+b.height/2-R.top;
+      if(free){ var x1=a.right-R.left+5, x2=b.left-R.left-5, dx=Math.max(36,Math.abs(x2-x1)*.5); d='M'+x1+' '+y1+'C'+(x1+dx)+' '+y1+' '+(x2-dx)+' '+y2+' '+x2+' '+y2; }
+      else { d='M'+(a.left-R.left)+' '+y1+'H18V'+y2+'H'+(b.left-R.left); }
+      e.wb.setAttribute('d',d); e.wl.setAttribute('d',d); });
+    cv.classList.toggle('one',A.length<2); $('wfDock').classList.toggle('full',A.length>=MAXA); }
+  function build(s){
+    box.innerHTML=''; svg.innerHTML=''; E=[]; A=[]; moved=false;
+    T=mk('t','trig',s.trig[0],s.trig[1],s.trig[2],FAM[s.f][1],'WHEN'); C=mk('c','cond',s.cond[0],s.cond[1],s.tests[0][1].charAt(0).toUpperCase()+s.tests[0][1].slice(1),null,'IF');
+    box.appendChild(T.el); box.appendChild(C.el); edge(T,C);
+    s.yes.forEach(function(a,k){ var n=mk('a',a[0],a[1],a[2],a[4],null,k===0?'THEN':''); A.push(n); box.appendChild(n.el); edge(C,n); });
+    auto(); draw(); }
+  function addAction(k,px,py){ if(A.length>=MAXA) return; touch(); var a=ADD[k], n=mk('a',a[0],a[2],a[3],a[4]); A.push(n); box.appendChild(n.el); edge(C,n);
+    if(free){ if(px==null){ if(!moved) auto(); else { var last=A[A.length-2]; n.w=last.w; n.x=last.x; n.y=Math.min(cv.clientHeight-NH,last.y+NH+12); put(n); } }
+      else { if(!moved){ auto(); } n.w=T.w; moved=true; n.x=Math.round(Math.max(0,Math.min(px-n.w/2,cv.clientWidth-n.w))/8)*8; n.y=Math.round(Math.max(22,Math.min(py-NH/2,cv.clientHeight-NH))/8)*8; put(n); } }
+    draw(); void n.el.offsetWidth; n.el.classList.add('in'); if(!free) setTimeout(draw,60); }
+  function removeAction(n){ if(A.length<2) return; var i=A.indexOf(n), e=E[i+1]; A.splice(i,1); E.splice(i+1,1); [e.wb,e.wl,e.pz].forEach(function(x){ svg.removeChild(x); }); box.removeChild(n.el); if(free&&!moved) auto(); draw(); }
+
+  /* ================= dragging ================= */
+  function touch(){ if(!paused&&playing){ paused=true; setPlayIcon(); sync(); } $('wfHint').classList.add('off'); }
+  function dragNode(n){ n.el.addEventListener('pointerdown',function(e){ if(!free||e.button>0||e.target.closest('.rm')) return; e.preventDefault(); touch();
+      var sx=e.clientX, sy=e.clientY, ox=n.x, oy=n.y, CW=cv.clientWidth, CH=cv.clientHeight; n.el.setPointerCapture(e.pointerId); n.el.classList.add('drag'); n.el.classList.remove('snap');
+      function mv(ev){ moved=true; n.x=Math.max(0,Math.min(ox+ev.clientX-sx,CW-n.w)); n.y=Math.max(22,Math.min(oy+ev.clientY-sy,CH-NH)); n.el.style.left=n.x+'px'; n.el.style.top=n.y+'px'; draw(); }
+      function up(){ n.el.removeEventListener('pointermove',mv); n.el.removeEventListener('pointerup',up); n.el.removeEventListener('pointercancel',up); n.el.classList.remove('drag');
+        n.x=Math.round(n.x/8)*8; n.y=Math.round(n.y/8)*8; put(n,true); var t0=performance.now(); (function f(t){ draw(); if(t-t0<220) requestAnimationFrame(f); })(t0); }
+      n.el.addEventListener('pointermove',mv); n.el.addEventListener('pointerup',up); n.el.addEventListener('pointercancel',up); }); }
+  /* a block dragged in from the dock follows the pointer and lands where it is dropped */
+  [].forEach.call($('wfPal').children,function(chip){ var k=+chip.getAttribute('data-k');
+    chip.addEventListener('pointerdown',function(e){ if(e.button>0) return; var sx=e.clientX, sy=e.clientY, ghost=null, a=ADD[k]; chip.setPointerCapture(e.pointerId);
+      function over(ev){ var r=cv.getBoundingClientRect(); return ev.clientX>r.left&&ev.clientX<r.right&&ev.clientY>r.top&&ev.clientY<r.bottom; }
+      function mv(ev){ if(!ghost&&Math.abs(ev.clientX-sx)+Math.abs(ev.clientY-sy)>6&&free&&A.length<MAXA){ ghost=document.createElement('div'); ghost.className='wf-ghost'; ghost.innerHTML='<i style="background:'+KCOL[a[0]]+'">'+ic(KICON[a[0]])+'</i>'+a[2]; document.body.appendChild(ghost); }
+        if(ghost){ ghost.style.left=ev.clientX+'px'; ghost.style.top=ev.clientY+'px'; cv.classList.toggle('over',over(ev)); } }
+      function up(ev){ chip.removeEventListener('pointermove',mv); chip.removeEventListener('pointerup',up); chip.removeEventListener('pointercancel',up); cv.classList.remove('over');
+        if(ghost){ document.body.removeChild(ghost); if(ev.type==='pointerup'&&over(ev)){ var r=cv.getBoundingClientRect(); addAction(k,ev.clientX-r.left,ev.clientY-r.top); } }
+        else if(ev.type==='pointerup') addAction(k); }
+      chip.addEventListener('pointermove',mv); chip.addEventListener('pointerup',up); chip.addEventListener('pointercancel',up); });
+    chip.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); addAction(k); } }); });
+
+  /* ================= running an event through whatever is on the canvas ================= */
+  function done(n){ var s=n.el.querySelector('.ns'); n.el.classList.remove('run'); if(reduce){ s.textContent=n.doneText; n.el.classList.add('done'); return; }
+    s.classList.add('sw'); setTimeout(function(){ s.textContent=n.doneText; s.classList.remove('sw'); n.el.classList.add('done'); },200); }
+  function pulse(e,ms){ e.wl.classList.add('on','flow'); if(reduce) return; var L=e.wl.getTotalLength(), t0=performance.now(), my=e.k=(e.k||0)+1;
+    (function f(t){ if(e.k!==my||!e.wl.isConnected) return; var k=Math.min(1,(t-t0)/ms), q=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2, p=e.wl.getPointAtLength(L*q); e.pz.setAttribute('x',p.x-3.5); e.pz.setAttribute('y',p.y-3.5); e.pz.style.opacity=k<1?1:0; if(k<1) requestAnimationFrame(f); })(t0); }
+  function clearRun(){ nodes().forEach(function(n){ n.el.classList.remove('run','done'); var s=n.el.querySelector('.ns'); s.textContent=n.sub; s.classList.remove('sw'); }); E.forEach(function(e){ e.k=(e.k||0)+1; e.pz.style.opacity=0; e.wl.classList.remove('on','flow'); }); }
+  function run(t0){ var acts=A.slice(), es=E.slice();
+    later(function(){ clearRun(); T.el.classList.add('run'); },t0);
+    later(function(){ done(T); pulse(es[0],440); },t0+450);
+    later(function(){ C.el.classList.add('run'); },t0+890);
+    later(function(){ done(C); },t0+1420);
+    acts.forEach(function(n,a){ later(function(){ if(es[a+1]) pulse(es[a+1],480); },t0+1680+a*170); later(function(){ n.el.classList.add('run'); },t0+2160+a*170); later(function(){ done(n); },t0+2680+a*300); });
+    later(function(){ es.forEach(function(e){ e.wl.classList.remove('flow'); }); },t0+2680+acts.length*300+1500); }
+  $('wfRun').addEventListener('click',function(){ if(cur<0) return; touch(); tm.forEach(clearTimeout); tm=[]; run(0); });
+  $('wfReset').addEventListener('click',function(){ if(cur<0) return; tm.forEach(clearTimeout); tm=[]; build(W[cur]); nodes().forEach(function(n){ n.el.classList.add('in'); }); run(500); });
+
+  function step(i){
+    var s=W[i]; cur=i; tm.forEach(clearTimeout); tm=[];
+    tabs.forEach(function(b,k){ b.classList.toggle('on',k===s.f); b.setAttribute('aria-selected',k===s.f?'true':'false'); b.tabIndex=k===s.f?0:-1; b.classList.remove('run'); });
+    ticks.forEach(function(t,k){ t.classList.toggle('on',k===i-first[s.f]); });
+    root.style.setProperty('--dw',DW+'ms'); if(playing){ void tabs[s.f].offsetWidth; tabs[s.f].classList.add('run'); }
+    $('wfName').textContent=s.n; build(s);
+    nodes().forEach(function(n,k){ later(function(){ n.el.classList.add('in'); },60+k*90); });
+    run(1100); sched();
+  }
+
+  /* ================= autoplay (stops as soon as the visitor starts building) ================= */
+  var playing=!reduce, inView=false, paused=false, tick=null, t0=0, spent=0, started=false;
+  function advancing(){ return playing&&!paused&&inView&&cur>-1; }
+  function sched(){ spent=0; t0=0; sync(); }
+  function sync(){
+    tabs.forEach(function(b){ b.classList.toggle('hold',!advancing()); });
+    clearTimeout(tick); tick=null;
+    if(advancing()){ t0=Date.now(); tick=setTimeout(function(){ step((cur+1)%W.length); },Math.max(300,DW-spent)); }
+    else if(t0){ spent+=Date.now()-t0; t0=0; }
+  }
+  function userStep(i){ playing=!reduce; paused=false; setPlayIcon(); step(i); }
+  function setPlayIcon(){ var b=$('wfPlay'), stopped=paused||!playing; b.innerHTML=ic(stopped?'play':'pause'); b.setAttribute('aria-label',stopped?'Play':'Pause'); }
+  $('wfPlay').addEventListener('click',function(){ paused=!paused; setPlayIcon(); sync(); });
+  var frame=$('wfFrame');
+  frame.addEventListener('pointermove',function(e){ var r=frame.getBoundingClientRect(); frame.style.setProperty('--mx',((e.clientX-r.left)/r.width*100)+'%'); frame.style.setProperty('--my',((e.clientY-r.top)/r.height*100)+'%'); });
+
+  /* first paint: the first workflow is already on the canvas */
+  mode(); build(W[0]); $('wfName').textContent=W[0].n; tabs[0].classList.add('on'); ticks[0].classList.add('on'); nodes().forEach(function(n){ n.el.classList.add('in'); });
+  setPlayIcon(); draw();
+  if('ResizeObserver' in window) new ResizeObserver(mode).observe(cv); window.addEventListener('resize',mode);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(draw);
+  var reveals=root.querySelectorAll('.reveal');
+  if('IntersectionObserver' in window && !reduce){
+    var ro=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); ro.unobserve(e.target);} }); },{threshold:.06});
+    reveals.forEach(function(x){ro.observe(x);});
+    var vo=new IntersectionObserver(function(es){ inView=es[0].isIntersecting; if(inView&&!started){ started=true; step(0); } else sync(); },{threshold:.25});
+    vo.observe(frame);
+  } else { reveals.forEach(function(x){x.classList.add('in');}); inView=true; step(0); }
+})();
+</script>
+
+<script>
+/* iframe helper: report real height to the parent page */
+(function(){
+  if(window.parent===window)return;
+  var last=0;
+  function send(){
+    var h=Math.ceil(document.documentElement.getBoundingClientRect().height);
+    if(h&&h!==last){last=h;window.parent.postMessage({syncnoxFrame:'workflows',height:h},'*');}
+  }
+  if('ResizeObserver' in window){new ResizeObserver(send).observe(document.documentElement);}
+  window.addEventListener('load',send);
+  window.addEventListener('resize',send);
+  send();
+})();
+</script>
+</body>
+</html>
